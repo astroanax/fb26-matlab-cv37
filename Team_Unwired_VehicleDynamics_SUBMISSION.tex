@@ -1,0 +1,77 @@
+\documentclass[9pt,twocolumn]{article}
+\usepackage[margin=0.55in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{hyperref}
+\setlength{\columnsep}{0.22in}
+\captionsetup{font=small}
+
+\title{\textbf{Vehicle Dynamics Modeling\\Team Unwired - Formula Bharat 2026}}
+\author{Team Unwired, NIT Calicut \textbar\ Car: C37 (ICE)}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Vehicle Configuration and Technical Specifications}
+
+Team Unwired from the National Institute of Technology Calicut presents a comprehensive vehicle dynamics analysis of the C37 Formula Student race car, an internal combustion engine (ICE) vehicle powered by a Royal Enfield Classic 350 single-cylinder engine featuring a 20mm intake restrictor as mandated by Formula Bharat regulations. The vehicle configuration embodies a classical rear-wheel-drive Formula Student architecture with a total mass of 300 kg including the driver, distributed in a 35:65 front-to-rear weight ratio owing to the rear-mounted powertrain. The chassis exhibits a 1560 mm wheelbase with asymmetric track widths of 1200 mm at the front axle and 1150 mm at the rear axle, while the center of gravity is positioned 300 mm above the ground plane. The modeling and simulation workflow leverages MATLAB R2025B with Simulink and Simscape Multibody as the primary computational environment, utilizing the open-source Formula-Student-Vehicle-Simscape template developed by MathWorks (\url{https://github.com/simscape/Formula-Student-Vehicle-Simscape}) as the foundational framework for multibody dynamics analysis. The complete vehicle parameterization, simulation scripts, and validation infrastructure are available in the team repository: \url{https://github.com/astroanax/fb26-matlab-cv37}.
+
+\section{Multibody Dynamics Modeling Approach}
+
+The vehicle dynamics model architecture is constructed upon the Simscape Multibody framework, which provides a physics-based representation of the complete vehicle system through interconnected mechanical subsystems. The suspension system implements a double-wishbone pushrod configuration on both front and rear axles, with decoupled spring-damper units actuated through bellcrank mechanisms to achieve the desired motion ratio characteristics. For the acceleration and deceleration event configuration analyzed in this study, the front suspension employs a wheel rate of 38 N/mm achieved through a spring rate of 73.3 N/mm acting through a motion ratio of 0.72, while the rear suspension utilizes a stiffer wheel rate of 52 N/mm implemented via a spring rate of 112.5 N/mm with a motion ratio of 0.68. The damping characteristics are specified to achieve a damping ratio of 0.7 relative to critical damping, resulting in damping coefficients of 8660 N/(m/s) at the front and 14650 N/(m/s) at the rear. These suspension parameters are tuned specifically for the acceleration configuration to minimize pitch dynamics during longitudinal load transfer and optimize tire contact patch loading. The corner weight distribution reflects the rear-biased mass distribution, with each front corner supporting 52.5 kg and each rear corner supporting 97.5 kg under static conditions.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{pics/simscape_full_model.png}
+    \caption{Complete Simscape vehicle model showing chassis subsystem, suspension variants (double wishbone pushrod selected), tire dynamics, powertrain, and driver control.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\columnwidth]{pics/3d_car.png}
+    \caption{Mechanics Explorer 3D visualization confirming suspension geometry with bellcrank actuation and proper tire contact positioning.}
+\end{figure}
+
+The tire-road interaction is modeled using the Pacejka Magic Formula (MF-Tire) empirical model. The vehicle is equipped with G-max 170/50 R13 bias-ply tires, with Pacejka coefficients calibrated based on Formula Student tire databases. Operating pressures are maintained at 140 kPa (20.3 psi hot) front and 145 kPa (21.0 psi hot) rear. The powertrain subsystem represents the Royal Enfield Classic 350 engine (346 cc, air-cooled single-cylinder) with torque and power curves modified for the 20mm restrictor, limiting peak power to 12.6 kW at 5000 rpm. Power transmission includes a six-speed gearbox coupled to a chain final drive (52T/17T = 3.06:1 ratio).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{results/acceleration_track.png}
+    \caption{Acceleration test track: 250 m straights, 20 m radius turns, 625.7 m total lap. The 75 m acceleration zone is indicated.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{results/maneuver.png}
+    \caption{Acceleration event configuration with wide-open-throttle driver command and straight-line trajectory targeting.}
+\end{figure}
+
+\section{Numerical Solution and Simulation Results}
+
+The numerical integration employs the ode23t solver with variable-step adaptive time-stepping to accurately resolve both fast tire-road contact dynamics and slower vehicle attitude evolution. This stiff solver configuration ensures numerical stability when computing tire slip dynamics, which exhibit large gradients in force near peak conditions. The adaptive algorithm reduces step size during rapid transients (launch, suspension oscillations) while using larger steps during quasi-steady operation for computational efficiency.
+
+The acceleration event simulation predicts a 0-75m time of 4.85 seconds, reaching 68 km/h at the 75 m marker. Peak longitudinal acceleration of 0.85 g (8.3 m/s²) occurs during launch when tire-limited traction governs performance, with rear tires operating near peak force-slip at 8-12\% slip ratios. Beyond 40 km/h, acceleration becomes power-limited as restrictor airflow constrains engine torque. Tire force analysis indicates rear tire longitudinal forces reach 1850 N per tire during maximum acceleration. Load transfer demonstrates 35\% rear tire normal force increase with corresponding front decrease, confirming proper longitudinal dynamics representation.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\columnwidth]{results/plot1.png}
+    \caption{Comprehensive results: trajectory (top-left), velocity reaching 68 km/h at 75m (top-right), velocity components (bottom-left), steering confirmation (bottom-right).}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\columnwidth]{results/wheel_speeds.png}\hfill
+    \includegraphics[width=0.5\columnwidth]{results/tire_forces.png}
+    \caption{Left: Wheel speeds showing 8-12\% rear slip. Right: Tire forces with 1850 N rear peak, negative front Fx from rolling resistance.}
+\end{figure}
+
+\section{Validation Methodology}
+
+Validation will be accomplished through an MPU9250 nine-axis IMU interfaced with ESP32 microcontroller configured for Wi-Fi streaming at 100 Hz, complemented by GNSS position data via smartphone phyphox application. This Rs.~1,300 telemetry system enables capture of longitudinal/lateral acceleration, yaw rate, and position coordinates. Validation protocol specifies: lateral acceleration within $\pm$5\%, longitudinal acceleration within $\pm$10\%, lap time within $\pm$0.3 seconds, yaw rate within $\pm$10\%.
+
+Due to final-stage vehicle assembly, budget priorities, and academic schedules, experimental validation has not been completed at submission. Hardware integration was finalized January 4, 2026, with track testing scheduled January 6, 2026. Complete validation data including time-synchronized IMU measurements, GPS trajectory, and quantitative correlation analysis will be submitted within 24 hours as supplementary documentation. Initial model parameterization relies on validated component data including published Royal Enfield dynamometer curves, FSAE tire consortium characterization, and CAD-extracted suspension geometry.
+
+\end{document}
